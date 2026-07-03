@@ -334,10 +334,8 @@ Define these together on Day 0 so all four people code against the same shapes. 
 
 ```go
 type Room struct {
-    Name    string
-    X, Y    int
-    IsStart bool
-    IsEnd   bool
+    Name string
+    X, Y int
 }
 
 type Graph struct {
@@ -435,8 +433,8 @@ Goal: turn the input file into a validated `*Graph`, and reject every malformed 
 - **What:** Apply the start/end commands to the room line that follows.
 - **Why:** The algorithm needs to know where ants begin and end.
 - **How:**
-  1. When you see `##start`, set a flag so the **next** room line is marked `IsStart` and recorded in `Graph.Start`.
-  2. Same for `##end` -> `IsEnd` / `Graph.End`.
+  1. When you see `##start`, set a flag so the **next** room line is recorded in `Graph.Start`.
+  2. Same for `##end` -> `Graph.End`.
   3. Treat other `#...` lines as comments (skip). Ignore unknown commands.
   4. Require exactly one start and one end; error otherwise.
 - **Done when:** Exactly one start and one end are required; comments and unknown commands are ignored without error.
