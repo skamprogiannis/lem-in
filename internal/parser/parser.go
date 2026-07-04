@@ -22,10 +22,11 @@ func Parse(filePath string) (*graph.Graph, error) {
 	}
 
 	lines := strings.SplitSeq(data, "\n")
+	g := &graph.Graph{}
 
 	for line := range lines {
 		_ = line
 	}
 
-	return &graph.Graph{}, nil
+	return g, nil
 }

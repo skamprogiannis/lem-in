@@ -14,7 +14,7 @@ func main() {
 	}
 
 	filePath := os.Args[1]
-	graph, err := parser.Parse(filePath)
+	g, err := parser.Parse(filePath)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "ERROR: invalid data format,", err)
 		os.Exit(1)
