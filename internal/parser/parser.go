@@ -26,9 +26,11 @@ func Parse(filePath string) (*graph.Graph, error) {
 	lines := strings.SplitSeq(normalizedData, "\n")
 	g := &graph.Graph{}
 	seenStart, seenEnd := false, false
+	var pending *string
 
 	for line := range lines {
-		tokens := strings.Fields(strings.TrimSpace(line))
+		line = strings.TrimSpace(line)
+		tokens := strings.Fields(line)
 		if len(tokens) == 0 {
 			continue
 		}
@@ -36,40 +38,47 @@ func Parse(filePath string) (*graph.Graph, error) {
 		if strings.HasPrefix(line, "#") {
 			switch line {
 			case "##start":
-				if seenStart {
+				if seenStart || pending != nil {
 					return nil, errors.New("more than one start location")
 				}
 				seenStart = true
+				pending = &g.Start
 			case "##end":
-				if seenEnd {
+				if seenEnd || pending != nil {
 					return nil, errors.New("more than one end location")
 				}
 				seenEnd = true
+				pending = &g.End
 			}
 			continue
 		}
 
-		if g.Start == "" && seenStart {
-			g.Start = tokens[0]
+		if pending != nil {
+			if len(tokens) != 3 {
+				return nil, errors.New("start or end not followed by a room")
+			}
+			*pending = tokens[0]
+			pending = nil
+			continue
 		}
 
-		if g.End == "" && seenEnd {
-			g.End = tokens[0]
-		}
-
-		if g.Start == "" && g.NumAnts == 0 {
-			g.NumAnts, err = strconv.Atoi(line)
+		if g.NumAnts == 0 {
+			if len(tokens) != 1 {
+				return nil, errors.New("number of ants not provided")
+			}
+			g.NumAnts, err = strconv.Atoi(tokens[0])
 			if err != nil {
 				return nil, errors.New("number of ants not provided")
 			}
+			continue
 		}
 	}
 
 	if g.NumAnts < 1 {
 		return nil, errors.New("need at least one ant")
 	}
-	if !seenStart || !seenEnd {
-		return nil, errors.New("did not find both a seenStart and an end")
+	if g.Start == "" || g.End == "" {
+		return nil, errors.New("did not find both a start and an end")
 	}
 
 	return g, nil
