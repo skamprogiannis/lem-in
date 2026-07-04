@@ -14,7 +14,7 @@ import (
 func Parse(filePath string) (*graph.Graph, error) {
 	file, err := os.ReadFile(filePath)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("input file not found")
 	}
 	data := string(file)
 	normalizedData := strings.TrimSpace(strings.ReplaceAll(data, "\r\n", "\n"))
@@ -39,13 +39,13 @@ func Parse(filePath string) (*graph.Graph, error) {
 			switch line {
 			case "##start":
 				if seenStart || pending != nil {
-					return nil, errors.New("more than one start location")
+					return nil, errors.New("multiple start rooms are not allowed")
 				}
 				seenStart = true
 				pending = &g.Start
 			case "##end":
 				if seenEnd || pending != nil {
-					return nil, errors.New("more than one end location")
+					return nil, errors.New("multiple end rooms are not allowed")
 				}
 				seenEnd = true
 				pending = &g.End
@@ -64,21 +64,24 @@ func Parse(filePath string) (*graph.Graph, error) {
 
 		if g.NumAnts == 0 {
 			if len(tokens) != 1 {
-				return nil, errors.New("number of ants not provided")
+				return nil, errors.New("invalid number in ant count entry")
 			}
 			g.NumAnts, err = strconv.Atoi(tokens[0])
 			if err != nil {
-				return nil, errors.New("number of ants not provided")
+				return nil, errors.New("invalid number in ant count entry")
 			}
 			continue
 		}
 	}
 
 	if g.NumAnts < 1 {
-		return nil, errors.New("need at least one ant")
+		return nil, errors.New("invalid ant value provided")
 	}
-	if g.Start == "" || g.End == "" {
-		return nil, errors.New("did not find both a start and an end")
+	if g.Start == "" {
+		return nil, errors.New("start room entry missing")
+	}
+	if g.End == "" {
+		return nil, errors.New("end room entry missing")
 	}
 
 	return g, nil
