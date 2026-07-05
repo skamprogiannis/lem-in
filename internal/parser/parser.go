@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -29,6 +30,7 @@ func Parse(filePath string) (*graph.Graph, error) {
 	var pending *string
 	g := &graph.Graph{
 		Rooms: make(map[string]*graph.Room),
+		Links: make(map[string][]string),
 	}
 
 	for lineNumber, line := range lines {
@@ -67,14 +69,34 @@ func Parse(filePath string) (*graph.Graph, error) {
 			continue
 		}
 
-		// TODO: issue #5
 		if len(tokens) == 1 && strings.Contains(line, "-") {
 			parsingLinks = true
+			roomNames := strings.Split(line, "-")
+
+			if len(roomNames) != 2 || roomNames[0] == "" || roomNames[1] == "" {
+				return nil, fmt.Errorf("line %d: malformed tunnel entry", lineNumber)
+			}
+
+			if roomNames[0] == roomNames[1] {
+				return nil, fmt.Errorf("line %d: room cannot link to itself", lineNumber)
+			}
+
+			if g.Rooms[roomNames[0]] == nil || g.Rooms[roomNames[1]] == nil {
+				return nil,
+					fmt.Errorf("line %d: room referenced by tunnel does not exist", lineNumber)
+			}
+
+			if slices.Contains(g.Links[roomNames[0]], roomNames[1]) {
+				return nil, fmt.Errorf("line %d: duplicate tunnel", lineNumber)
+			}
+
+			g.Links[roomNames[0]] = append(g.Links[roomNames[0]], roomNames[1])
+			g.Links[roomNames[1]] = append(g.Links[roomNames[1]], roomNames[0])
 			continue
 		}
 
 		if parsingLinks {
-			return nil, fmt.Errorf("line %d: room declared after links", lineNumber)
+			return nil, fmt.Errorf("line %d: room declared after tunnels", lineNumber)
 		}
 
 		room, err := parseRoom(tokens, lineNumber)
