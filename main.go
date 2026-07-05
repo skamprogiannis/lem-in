@@ -14,14 +14,11 @@ func main() {
 	}
 
 	filePath := os.Args[1]
-	g, err := parser.Parse(filePath)
+	_, err := parser.Parse(filePath) // TODO: declare g
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "ERROR: invalid data format,", err)
 		os.Exit(1)
 	}
 
-	// paths, err := graph.FindPaths(graph)
-	// if err != nil {
-	//
-	// }
+	// paths, err := graph.FindPaths(g)
 }
