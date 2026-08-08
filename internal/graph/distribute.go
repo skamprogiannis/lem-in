@@ -3,20 +3,23 @@ package graph
 // tunnelCount is how many moves a path takes: one less than its room count.
 func tunnelCount(p Path) int { return len(p) - 1 }
 
+// arrivalTurn is the turn an ant reaches the end of a path, given how many ants
+// are queued ahead of it: one turn per tunnel, plus one turn per ant waited on.
+func arrivalTurn(p Path, queuedAhead int) int {
+	return tunnelCount(p) + queuedAhead
+}
+
 // antsPerPath hands the ants out one at a time, each to the path where it would
 // arrive soonest, and reports how many ended up on each path.
-//
-// A path of L tunnels already carrying c ants delivers the next ant on turn L+c,
-// since that ant waits for the c queued ahead of it. Smallest L+c wins.
 func antsPerPath(paths []Path, ants int) []int {
 	carried := make([]int, len(paths))
 
 	for i := 0; i < ants; i++ {
 		choice := 0
-		soonest := tunnelCount(paths[0]) + carried[0]
+		soonest := arrivalTurn(paths[0], carried[0])
 
 		for p := 1; p < len(paths); p++ {
-			if arrival := tunnelCount(paths[p]) + carried[p]; arrival < soonest {
+			if arrival := arrivalTurn(paths[p], carried[p]); arrival < soonest {
 				choice, soonest = p, arrival
 			}
 		}
@@ -37,9 +40,7 @@ func turnsNeeded(paths []Path, ants int) int {
 		if count == 0 {
 			continue // a path nobody was sent down costs nothing
 		}
-		if finish := tunnelCount(paths[p]) + count - 1; finish > slowest {
-			slowest = finish
-		}
+		slowest = max(slowest, arrivalTurn(paths[p], count-1))
 	}
 	return slowest
 }
