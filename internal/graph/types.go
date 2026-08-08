@@ -15,3 +15,6 @@ type Graph struct {
 	Start   string
 	End     string
 }
+
+// Path is an ordered list of room names running from Start to End.
+type Path []string
