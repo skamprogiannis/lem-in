@@ -34,6 +34,9 @@ type network struct {
 	sink   int // the end room's entry
 }
 
+// nodeCount is how many entry and exit halves the farm was split into.
+func (n *network) nodeCount() int { return len(n.leaving) }
+
 // Room r owns nodes 2r and 2r+1. These four are exact inverses of each other,
 // so a node number on its own says everything about where it sits.
 func entryNode(room int) int { return 2 * room }

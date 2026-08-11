@@ -22,7 +22,7 @@ func (n *network) augment() bool {
 // shortest route left, and path length is exactly what decides the turn count.
 // Depth-first would find just as many paths, but slower ones.
 func (n *network) bfs() ([]int, bool) {
-	nodes := len(n.leaving) // leaving holds one list per node
+	nodes := n.nodeCount()
 	visited := make([]bool, nodes)
 	arrivedBy := make([]int, nodes)
 
