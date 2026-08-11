@@ -104,6 +104,8 @@ func (n *network) addTunnelsFrom(room int, neighbours []string) {
 // forwards is what opens the undo, which is how a later search can walk back
 // through a booking, take it back, and reroute the ant that made it.
 func (n *network) addEdge(from, to int) {
+	// Ids are handed out in the order passages are appended, so the next two
+	// land on the current length and the one after it.
 	onward := len(n.edges)
 	undo := onward + 1
 
