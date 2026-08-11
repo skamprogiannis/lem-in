@@ -57,6 +57,7 @@ func checkPathSet(t *testing.T, g *Graph, paths []Path) {
 			}
 		}
 
+		// Start and end may be shared; only the rooms in between must be exclusive.
 		for _, room := range p[1 : len(p)-1] {
 			if other, taken := holder[room]; taken {
 				t.Fatalf("paths %d and %d both use room %q", other, i, room)
