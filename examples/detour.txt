@@ -1,0 +1,24 @@
+6
+##start
+S 0 5
+no 2 8
+so 2 2
+mid 5 5
+##end
+E 12 5
+up 4 9
+far 7 9
+out 10 8
+dead 7 3
+S-no
+S-so
+no-mid
+mid-E
+# the shared room, reachable from both no and so
+so-mid
+no-up
+up-far
+## unknown command, must be ignored
+far-out
+out-E
+mid-dead
