@@ -80,6 +80,62 @@ func TestAntsPerPathLeavesASlowPathEmpty(t *testing.T) {
 	}
 }
 
+// Same worked example as TestAntsPerPathMatchesTheWorkedExample, but checking
+// which ant numbers land where, not just how many.
+func TestAssignAntsMatchesTheWorkedExample(t *testing.T) {
+	paths := []Path{pathOfLength(3), pathOfLength(5)}
+
+	got := AssignAnts(paths, 6)
+	want := [][]int{{1, 2, 3, 5}, {4, 6}}
+
+	for p := range want {
+		if !slices.Equal(got[p], want[p]) {
+			t.Errorf("path %d: got %v, want %v", p, got[p], want[p])
+		}
+	}
+}
+
+// A path that carries nobody must still show up as an (empty) queue, so
+// callers can index it by path position.
+func TestAssignAntsLeavesASlowPathEmpty(t *testing.T) {
+	paths := []Path{pathOfLength(2), pathOfLength(50)}
+
+	got := AssignAnts(paths, 2)
+	want := [][]int{{1, 2}, {}}
+
+	for p := range want {
+		if !slices.Equal(got[p], want[p]) {
+			t.Errorf("path %d: got %v, want %v", p, got[p], want[p])
+		}
+	}
+}
+
+// Every ant assigned must appear exactly once across all paths, in ascending
+// order overall, since ants are handed out 1..N in that order.
+func TestAssignAntsCoversEveryAntExactlyOnce(t *testing.T) {
+	paths := []Path{pathOfLength(4), pathOfLength(4), pathOfLength(4)}
+
+	queues := AssignAnts(paths, 9)
+
+	var all []int
+	for _, q := range queues {
+		all = append(all, q...)
+	}
+	slices.Sort(all)
+
+	want := []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	if !slices.Equal(all, want) {
+		t.Errorf("got ants %v, want %v", all, want)
+	}
+}
+
+// An empty path set must return an empty (not nil-panicking) set of queues.
+func TestAssignAntsOnNoPaths(t *testing.T) {
+	if got := AssignAnts(nil, 5); len(got) != 0 {
+		t.Errorf("got %v, want no queues", got)
+	}
+}
+
 func TestTurnsNeededOnOneCorridor(t *testing.T) {
 	// Four ants queue behind each other down three tunnels: 3 + 4 - 1.
 	if got := turnsNeeded([]Path{pathOfLength(3)}, 4); got != 6 {

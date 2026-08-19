@@ -9,23 +9,39 @@ func arrivalTurn(p Path, queuedAhead int) int {
 	return tunnelCount(p) + queuedAhead
 }
 
-// antsPerPath hands the ants out one at a time, each to the path where it would
-// arrive soonest, and reports how many ended up on each path.
-func antsPerPath(paths []Path, ants int) []int {
-	carried := make([]int, len(paths))
+// AssignAnts hands ants 1..numAnts out one at a time, each to the path where it
+// would arrive soonest, and returns every path's ants in the order they queue
+// on it. It is the same greedy rule FindPaths already uses (via antsPerPath) to
+// score candidate path sets, so Simulate can reuse it to learn which ant rides
+// which path instead of re-deriving the distribution.
+func AssignAnts(paths []Path, numAnts int) [][]int {
+	queues := make([][]int, len(paths))
+	if len(paths) == 0 {
+		return queues
+	}
 
-	for i := 0; i < ants; i++ {
+	for ant := 1; ant <= numAnts; ant++ {
 		choice := 0
-		soonest := arrivalTurn(paths[0], carried[0])
+		soonest := arrivalTurn(paths[0], len(queues[0]))
 
 		for p := 1; p < len(paths); p++ {
-			if arrival := arrivalTurn(paths[p], carried[p]); arrival < soonest {
+			if arrival := arrivalTurn(paths[p], len(queues[p])); arrival < soonest {
 				choice, soonest = p, arrival
 			}
 		}
-		carried[choice]++
+		queues[choice] = append(queues[choice], ant)
 	}
-	return carried
+	return queues
+}
+
+// antsPerPath reports how many ants AssignAnts put on each path.
+func antsPerPath(paths []Path, ants int) []int {
+	queues := AssignAnts(paths, ants)
+	counts := make([]int, len(queues))
+	for p, q := range queues {
+		counts[p] = len(q)
+	}
+	return counts
 }
 
 // turnsNeeded reports how many turns a set of paths takes for a number of ants.
