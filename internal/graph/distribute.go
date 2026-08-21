@@ -1,14 +1,5 @@
 package graph
 
-// tunnelCount is how many moves a path takes: one less than its room count.
-func tunnelCount(p Path) int { return len(p) - 1 }
-
-// arrivalTurn is the turn an ant reaches the end of a path, given how many ants
-// are queued ahead of it: one turn per tunnel, plus one turn per ant waited on.
-func arrivalTurn(p Path, queuedAhead int) int {
-	return tunnelCount(p) + queuedAhead
-}
-
 // AssignAnts hands ants 1..numAnts out one at a time, each to the path where it
 // would arrive soonest, and returns every path's ants in the order they queue
 // on it. It is the same greedy rule FindPaths already uses (via antsPerPath) to
@@ -32,6 +23,15 @@ func AssignAnts(paths []Path, numAnts int) [][]int {
 		queues[choice] = append(queues[choice], ant)
 	}
 	return queues
+}
+
+// tunnelCount is how many moves a path takes: one less than its room count.
+func tunnelCount(p Path) int { return len(p) - 1 }
+
+// arrivalTurn is the turn an ant reaches the end of a path, given how many ants
+// are queued ahead of it: one turn per tunnel, plus one turn per ant waited on.
+func arrivalTurn(p Path, queuedAhead int) int {
+	return tunnelCount(p) + queuedAhead
 }
 
 // antsPerPath reports how many ants AssignAnts put on each path.
