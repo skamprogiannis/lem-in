@@ -165,15 +165,20 @@ func checkInvariants(t *testing.T, paths []graph.Path, numAnts int, lines []stri
 	t.Helper()
 
 	ends := make(map[string]bool)
+	lastRoom := make(map[int]string)
 	for _, p := range paths {
 		ends[p[len(p)-1]] = true
 	}
-
-	lastRoom := make(map[int]string)
+	for p, queue := range graph.AssignAnts(paths, numAnts) {
+		for _, ant := range queue {
+			lastRoom[ant] = paths[p][0]
+		}
+	}
 
 	for turn, line := range lines {
 		seenAnt := make(map[int]bool)
 		seenRoom := make(map[string]bool)
+		seenTunnel := make(map[string]bool)
 
 		for _, token := range strings.Fields(line) {
 			ant, room := parseMove(t, token)
@@ -187,6 +192,16 @@ func checkInvariants(t *testing.T, paths []graph.Path, numAnts int, lines []stri
 				t.Fatalf("turn %d: two ants enter room %q: %q", turn+1, room, line)
 			}
 			seenRoom[room] = true
+
+			from, to := lastRoom[ant], room
+			if from > to {
+				from, to = to, from
+			}
+			tunnel := from + "\x00" + to
+			if seenTunnel[tunnel] {
+				t.Fatalf("turn %d: tunnel %q-%q is used twice: %q", turn+1, from, to, line)
+			}
+			seenTunnel[tunnel] = true
 
 			lastRoom[ant] = room
 		}
