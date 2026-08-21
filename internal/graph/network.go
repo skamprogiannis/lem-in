@@ -2,14 +2,6 @@ package graph
 
 import "slices"
 
-// The rule to enforce is "one ant per room", but a flow search only knows how
-// to limit passages, not rooms. So every room is split in two.
-//
-// To cross a room you have to squeeze through its middle passage, and that
-// passage fits a single ant. Start and end are exempt from the rule, and they
-// get that for free: the search begins at the start room's exit and finishes at
-// the end room's entry, so neither middle passage is ever touched.
-
 // edge is a one-way passage between two nodes. Every real passage fits exactly
 // one ant, so "is there room left" is a yes or no question rather than a count.
 type edge struct {
@@ -22,7 +14,9 @@ type edge struct {
 // inUse reports whether an ant is currently booked through this passage.
 func (e edge) inUse() bool { return !e.isUndo && !e.open }
 
-// network is the ant farm rewritten as something a flow search can walk.
+// network rewrites room capacity as edge capacity by splitting every room into
+// entry and exit nodes joined by a one-ant passage. The search starts at the
+// start room's exit and stops at the end room's entry, leaving both unlimited.
 type network struct {
 	roomNames []string       // room number -> room name
 	roomIndex map[string]int // room name -> room number

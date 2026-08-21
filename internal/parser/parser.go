@@ -1,4 +1,4 @@
-// package parser reads and validates lem-in input files.
+// Package parser reads and validates lem-in input files.
 package parser
 
 import (
@@ -115,7 +115,7 @@ func Parse(filePath string) (*graph.Graph, error) {
 		}
 	}
 
-	// failure conidtions after file has been read
+	// Failure conditions checked after the whole file has been read.
 	if g.NumAnts < 1 {
 		return nil, errors.New("invalid ant value provided")
 	}

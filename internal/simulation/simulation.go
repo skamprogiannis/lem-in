@@ -1,4 +1,4 @@
-// package simulation turns a set of disjoint paths and an ant count into the
+// Package simulation turns a set of disjoint paths and an ant count into the
 // turn-by-turn moves that carry every ant from start to end.
 package simulation
 

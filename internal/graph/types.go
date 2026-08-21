@@ -1,7 +1,7 @@
-// package graph defiens the lem-in ant farm model.
+// Package graph defines the lem-in ant farm model.
 package graph
 
-// Room describes on room in the ant-farm.
+// Room describes one room in the ant farm.
 type Room struct {
 	Name string
 	X, Y int
