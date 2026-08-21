@@ -5,44 +5,47 @@ import (
 	"lem-in/internal/parser"
 	"lem-in/internal/simulation"
 
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Fprintln(os.Stderr, "ERROR: invalid data format, input file missing")
-		os.Exit(1)
-	}
-
-	filePath := os.Args[1]
-
-	raw, err := os.ReadFile(filePath)
-	if err != nil {
+	if err := run(os.Args[1:], os.Stdout); err != nil {
 		fmt.Fprintln(os.Stderr, "ERROR: invalid data format,", err)
 		os.Exit(1)
+	}
+}
+
+func run(args []string, stdout io.Writer) error {
+	if len(args) != 1 {
+		return errors.New("input file missing")
+	}
+
+	filePath := args[0]
+	raw, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
 	}
 
 	g, err := parser.Parse(filePath)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "ERROR: invalid data format,", err)
-		os.Exit(1)
+		return err
 	}
 
 	paths, err := graph.FindPaths(g)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "ERROR: invalid data format,", err)
-		os.Exit(1)
+		return err
 	}
 
 	turns, err := simulation.Simulate(paths, g.NumAnts)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "ERROR: invalid data format,", err)
-		os.Exit(1)
+		return err
 	}
 
-	fmt.Print(strings.TrimRight(string(raw), "\n") + "\n")
-	fmt.Println()
-	fmt.Println(strings.Join(turns, "\n"))
+	_, err = fmt.Fprint(stdout,
+		strings.TrimRight(string(raw), "\n")+"\n\n"+strings.Join(turns, "\n")+"\n")
+	return err
 }
