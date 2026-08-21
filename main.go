@@ -45,7 +45,17 @@ func run(args []string, stdout io.Writer) error {
 		return err
 	}
 
-	_, err = fmt.Fprint(stdout,
-		strings.TrimRight(string(raw), "\n")+"\n\n"+strings.Join(turns, "\n")+"\n")
+	if _, err = stdout.Write(raw); err != nil {
+		return err
+	}
+	if len(raw) == 0 || raw[len(raw)-1] != '\n' {
+		if _, err = fmt.Fprintln(stdout); err != nil {
+			return err
+		}
+	}
+	if _, err = fmt.Fprintln(stdout); err != nil {
+		return err
+	}
+	_, err = fmt.Fprintln(stdout, strings.Join(turns, "\n"))
 	return err
 }
