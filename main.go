@@ -21,7 +21,7 @@ func main() {
 
 func run(args []string, stdout io.Writer) error {
 	if len(args) != 1 {
-		return errors.New("input file missing")
+		return errors.New("expected exactly one input file")
 	}
 
 	filePath := args[0]

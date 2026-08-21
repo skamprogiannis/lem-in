@@ -2,11 +2,117 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 )
+
+func TestRunRequiresExactlyOneInputFile(t *testing.T) {
+	tests := []struct {
+		name string
+		args []string
+	}{
+		{name: "missing argument"},
+		{name: "extra argument", args: []string{"example.txt", "extra"}},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			var stdout bytes.Buffer
+
+			err := run(tc.args, &stdout)
+			if err == nil {
+				t.Fatal("run accepted invalid argument count")
+			}
+			if got, want := err.Error(), "expected exactly one input file"; got != want {
+				t.Errorf("run error = %q, want %q", got, want)
+			}
+			if stdout.Len() != 0 {
+				t.Errorf("run wrote stdout on failure: %q", stdout.String())
+			}
+		})
+	}
+}
+
+func TestCLIReportsInvalidInput(t *testing.T) {
+	binary := buildCLI(t)
+	missingFile := filepath.Join(t.TempDir(), "missing.txt")
+
+	tests := []struct {
+		name       string
+		args       []string
+		wantStderr string
+		exact      bool
+	}{
+		{
+			name:       "missing argument",
+			wantStderr: "ERROR: invalid data format, expected exactly one input file\n",
+			exact:      true,
+		},
+		{
+			name:       "extra argument",
+			args:       []string{"examples/example00.txt", "extra"},
+			wantStderr: "ERROR: invalid data format, expected exactly one input file\n",
+			exact:      true,
+		},
+		{
+			name:       "missing file",
+			args:       []string{missingFile},
+			wantStderr: "ERROR: invalid data format,",
+		},
+		{
+			name:       "bad example 00",
+			args:       []string{"examples/badexample00.txt"},
+			wantStderr: "ERROR: invalid data format,",
+		},
+		{
+			name:       "bad example 01",
+			args:       []string{"examples/badexample01.txt"},
+			wantStderr: "ERROR: invalid data format,",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := exec.Command(binary, tc.args...)
+			var stdout, stderr bytes.Buffer
+			cmd.Stdout = &stdout
+			cmd.Stderr = &stderr
+
+			err := cmd.Run()
+			var exitErr *exec.ExitError
+			if !errors.As(err, &exitErr) {
+				t.Fatalf("CLI error = %v, want nonzero exit", err)
+			}
+			if exitErr.ExitCode() != 1 {
+				t.Errorf("CLI exit code = %d, want 1", exitErr.ExitCode())
+			}
+			if stdout.Len() != 0 {
+				t.Errorf("CLI wrote stdout on failure: %q", stdout.String())
+			}
+			if tc.exact && stderr.String() != tc.wantStderr {
+				t.Errorf("CLI stderr = %q, want %q", stderr.String(), tc.wantStderr)
+			}
+			if !tc.exact && !strings.HasPrefix(stderr.String(), tc.wantStderr) {
+				t.Errorf("CLI stderr = %q, want prefix %q", stderr.String(), tc.wantStderr)
+			}
+		})
+	}
+}
+
+func buildCLI(t *testing.T) string {
+	t.Helper()
+
+	binary := filepath.Join(t.TempDir(), "lem-in")
+	cmd := exec.Command("go", "build", "-o", binary, ".")
+	if output, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("build CLI: %v\n%s", err, output)
+	}
+	return binary
+}
 
 func TestRunPreservesInputBeforeMoves(t *testing.T) {
 	input := "4\n" +
