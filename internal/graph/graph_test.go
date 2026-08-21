@@ -113,6 +113,23 @@ func TestFindPathsTwoUnequalPaths(t *testing.T) {
 	checkResult(t, g, 2, 5)
 }
 
+func TestFindPathsReturnsShortestPathsFirst(t *testing.T) {
+	g := buildFarm(t, 10, "S", "E",
+		"S-long1", "long1-long2", "long2-long3", "long3-E",
+		"S-short", "short-E")
+
+	paths, err := FindPaths(g)
+	if err != nil {
+		t.Fatalf("FindPaths: %v", err)
+	}
+
+	for i := 1; i < len(paths); i++ {
+		if len(paths[i-1]) > len(paths[i]) {
+			t.Fatalf("paths are not shortest first: %v", paths)
+		}
+	}
+}
+
 // The long way round costs five tunnels against three, but with six ants the
 // short path would jam, so both are worth using.
 func TestFindPathsLongDetourStillWorthTaking(t *testing.T) {

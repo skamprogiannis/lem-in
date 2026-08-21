@@ -1,6 +1,9 @@
 package graph
 
-import "errors"
+import (
+	"errors"
+	"sort"
+)
 
 // FindPaths returns the paths from Start to End that move g.NumAnts ants in the
 // fewest turns. It expects a validated graph. No two paths share a room in the
@@ -25,5 +28,8 @@ func FindPaths(g *Graph) ([]Path, error) {
 	if len(best) == 0 {
 		return nil, errors.New("no path between start and end")
 	}
+	sort.SliceStable(best, func(i, j int) bool {
+		return tunnelCount(best[i]) < tunnelCount(best[j])
+	})
 	return best, nil
 }
