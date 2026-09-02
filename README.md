@@ -112,6 +112,15 @@ On the latest local compiled-binary audit (Linux amd64, Go 1.26.5), the 100-ant
 and 1,000-ant examples completed in approximately 0.002 s and 0.004 s. Their
 official limits are 90 s and 150 s respectively; exact timings vary by machine.
 
+## What we learned
+
+The central lesson was that a shortest path is not necessarily the fastest way
+to move a crowd. Modeling each room as a capacity constraint connected graph
+theory to scheduling: path discovery and ant distribution have to be optimized
+together. The project also made deterministic map traversal and invariant-based
+integration tests essential rather than cosmetic—both catch failures that
+example-output snapshots alone can miss.
+
 ## Team and contributions
 
 - **Stefanos Kamprogiannis (`skamprogiannis`)** — parser, CLI and error-path
