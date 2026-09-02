@@ -68,8 +68,18 @@ func TestParseRejectsInvalidInput(t *testing.T) {
 			wantErr: "invalid number in ant count entry",
 		},
 		{
+			name:    "ant count has multiple fields",
+			input:   "1 2\n",
+			wantErr: "invalid number in ant count entry",
+		},
+		{
 			name:    "zero ants",
 			input:   "0\n",
+			wantErr: "invalid ant value provided",
+		},
+		{
+			name:    "negative ants",
+			input:   "-1\n",
 			wantErr: "invalid ant value provided",
 		},
 		{
@@ -88,6 +98,20 @@ func TestParseRejectsInvalidInput(t *testing.T) {
 			wantErr: "x value is malformed",
 		},
 		{
+			name: "malformed y coordinate",
+			input: "1\n" +
+				"##start\n" +
+				"start 0 y\n",
+			wantErr: "y value is malformed",
+		},
+		{
+			name: "malformed room",
+			input: "1\n" +
+				"##start\n" +
+				"start 0\n",
+			wantErr: "room lines must be of format",
+		},
+		{
 			name: "reserved room name",
 			input: "1\n" +
 				"##start\n" +
@@ -103,6 +127,16 @@ func TestParseRejectsInvalidInput(t *testing.T) {
 				"end 1 0\n" +
 				"start-missing\n",
 			wantErr: "room referenced by tunnel does not exist",
+		},
+		{
+			name: "malformed tunnel",
+			input: "1\n" +
+				"##start\n" +
+				"start 0 0\n" +
+				"##end\n" +
+				"end 1 0\n" +
+				"start--end\n",
+			wantErr: "malformed tunnel entry",
 		},
 		{
 			name: "self link",
