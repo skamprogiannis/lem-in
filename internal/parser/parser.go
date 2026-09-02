@@ -26,6 +26,7 @@ func Parse(filePath string) (*graph.Graph, error) {
 	}
 
 	lines := strings.Split(normalizedData, "\n")
+	antsParsed := false
 	seenStart, seenEnd, parsingLinks := false, false, false
 	var pending *string
 	g := &graph.Graph{
@@ -58,7 +59,7 @@ func Parse(filePath string) (*graph.Graph, error) {
 			continue
 		}
 
-		if g.NumAnts == 0 {
+		if !antsParsed {
 			if len(tokens) != 1 {
 				return nil, errors.New("invalid number in ant count entry")
 			}
@@ -66,6 +67,10 @@ func Parse(filePath string) (*graph.Graph, error) {
 			if err != nil {
 				return nil, errors.New("invalid number in ant count entry")
 			}
+			if g.NumAnts < 1 {
+				return nil, errors.New("invalid ant value provided")
+			}
+			antsParsed = true
 			continue
 		}
 
@@ -116,7 +121,7 @@ func Parse(filePath string) (*graph.Graph, error) {
 	}
 
 	// Failure conditions checked after the whole file has been read.
-	if g.NumAnts < 1 {
+	if !antsParsed {
 		return nil, errors.New("invalid ant value provided")
 	}
 	if g.Start == "" {

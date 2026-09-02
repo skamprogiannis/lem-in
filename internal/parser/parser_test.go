@@ -78,6 +78,17 @@ func TestParseRejectsInvalidInput(t *testing.T) {
 			wantErr: "invalid ant value provided",
 		},
 		{
+			name: "zero ant count cannot be replaced by a later number",
+			input: "0\n" +
+				"1\n" +
+				"##start\n" +
+				"start 0 0\n" +
+				"##end\n" +
+				"end 1 0\n" +
+				"start-end\n",
+			wantErr: "invalid ant value provided",
+		},
+		{
 			name:    "negative ants",
 			input:   "-1\n",
 			wantErr: "invalid ant value provided",
