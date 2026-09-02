@@ -86,6 +86,25 @@ func TestSimulateOneShortPathCarriesAllAnts(t *testing.T) {
 	assertLines(t, got, want)
 }
 
+func TestSimulateLeavesAnUnhelpfulPathIdle(t *testing.T) {
+	paths := []graph.Path{
+		{"S", "a", "E"},
+		{"S", "b", "c", "d", "e", "f", "E"},
+	}
+
+	got, err := Simulate(paths, 2)
+	if err != nil {
+		t.Fatalf("Simulate: %v", err)
+	}
+
+	want := []string{
+		"L1-a",
+		"L1-E L2-a",
+		"L2-E",
+	}
+	assertLines(t, got, want)
+}
+
 func TestSimulateIsDeterministic(t *testing.T) {
 	paths := []graph.Path{
 		{"S", "a", "b", "E"},
