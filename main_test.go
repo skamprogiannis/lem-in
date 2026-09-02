@@ -6,8 +6,13 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
+	"strconv"
 	"strings"
 	"testing"
+
+	"lem-in/internal/graph"
+	"lem-in/internal/parser"
 )
 
 func TestRunRequiresExactlyOneInputFile(t *testing.T) {
@@ -190,8 +195,140 @@ func TestRunOfficialExamples(t *testing.T) {
 			if turns := strings.Count(moves, "\n") + 1; tc.maxTurns > 0 && turns > tc.maxTurns {
 				t.Errorf("completed in %d turns, want at most %d", turns, tc.maxTurns)
 			}
+
+			g, err := parser.Parse(tc.file)
+			if err != nil {
+				t.Fatalf("parse official example for audit checks: %v", err)
+			}
+			verifyMovementRules(t, g, strings.Split(moves, "\n"))
 		})
 	}
+}
+
+// verifyMovementRules independently checks the movement transcript emitted by
+// the public CLI seam. It deliberately does not rely on the paths selected by
+// the graph package: the parsed farm and the official movement rules are the
+// source of truth.
+func verifyMovementRules(t *testing.T, g *graph.Graph, turns []string) {
+	t.Helper()
+
+	positions := make(map[int]string, g.NumAnts)
+	for ant := 1; ant <= g.NumAnts; ant++ {
+		positions[ant] = g.Start
+	}
+
+	for turnIndex, line := range turns {
+		if strings.TrimSpace(line) == "" {
+			t.Fatalf("turn %d contains no movements", turnIndex+1)
+		}
+		if normalized := strings.Join(strings.Fields(line), " "); normalized != line {
+			t.Fatalf("turn %d is not single-space separated: %q", turnIndex+1, line)
+		}
+
+		moved := make(map[int]string)
+		destinations := make(map[string]int)
+		tunnels := make(map[[2]string]int)
+
+		for _, token := range strings.Fields(line) {
+			ant, destination := parseAuditMove(t, token)
+			if ant < 1 || ant > g.NumAnts {
+				t.Fatalf("turn %d: ant %d is outside 1..%d", turnIndex+1, ant, g.NumAnts)
+			}
+			if _, duplicate := moved[ant]; duplicate {
+				t.Fatalf("turn %d: ant %d moves more than once", turnIndex+1, ant)
+			}
+
+			from := positions[ant]
+			if from == g.End {
+				t.Fatalf("turn %d: ant %d moves after reaching the end", turnIndex+1, ant)
+			}
+			if !slices.Contains(g.Links[from], destination) {
+				t.Fatalf("turn %d: ant %d uses nonexistent tunnel %q-%q",
+					turnIndex+1, ant, from, destination)
+			}
+
+			tunnel := [2]string{from, destination}
+			if tunnel[1] < tunnel[0] {
+				tunnel[0], tunnel[1] = tunnel[1], tunnel[0]
+			}
+			if other, used := tunnels[tunnel]; used {
+				t.Fatalf("turn %d: ants %d and %d both use tunnel %q-%q",
+					turnIndex+1, other, ant, tunnel[0], tunnel[1])
+			}
+			tunnels[tunnel] = ant
+
+			if destination != g.Start && destination != g.End {
+				if other, occupied := destinations[destination]; occupied {
+					t.Fatalf("turn %d: ants %d and %d both enter room %q",
+						turnIndex+1, other, ant, destination)
+				}
+				destinations[destination] = ant
+			}
+			moved[ant] = destination
+		}
+
+		// A room may be entered as its current occupant leaves during the same
+		// turn, but it may not be entered while that occupant stays put.
+		for ant, room := range positions {
+			if room == g.Start || room == g.End {
+				continue
+			}
+			if _, leaves := moved[ant]; leaves {
+				continue
+			}
+			if entering, collision := destinations[room]; collision {
+				t.Fatalf("turn %d: ant %d enters room %q while ant %d remains there",
+					turnIndex+1, entering, room, ant)
+			}
+		}
+
+		for ant, room := range moved {
+			positions[ant] = room
+		}
+	}
+
+	for ant := 1; ant <= g.NumAnts; ant++ {
+		if positions[ant] != g.End {
+			t.Errorf("ant %d finishes in %q, want end room %q", ant, positions[ant], g.End)
+		}
+	}
+}
+
+func TestRunIsDeterministic(t *testing.T) {
+	const input = "examples/example05.txt"
+
+	var first bytes.Buffer
+	if err := run([]string{input}, &first); err != nil {
+		t.Fatalf("first run: %v", err)
+	}
+
+	for attempt := 1; attempt <= 20; attempt++ {
+		var again bytes.Buffer
+		if err := run([]string{input}, &again); err != nil {
+			t.Fatalf("attempt %d: %v", attempt, err)
+		}
+		if got, want := again.String(), first.String(); got != want {
+			t.Fatalf("attempt %d produced different output", attempt)
+		}
+	}
+}
+
+func parseAuditMove(t *testing.T, token string) (int, string) {
+	t.Helper()
+
+	body, ok := strings.CutPrefix(token, "L")
+	if !ok {
+		t.Fatalf("movement %q does not start with L", token)
+	}
+	antText, room, ok := strings.Cut(body, "-")
+	if !ok || antText == "" || room == "" {
+		t.Fatalf("movement %q is not formatted as Lx-y", token)
+	}
+	ant, err := strconv.Atoi(antText)
+	if err != nil {
+		t.Fatalf("movement %q has an invalid ant number: %v", token, err)
+	}
+	return ant, room
 }
 
 func TestRunRejectsOfficialBadExamples(t *testing.T) {
