@@ -1,5 +1,9 @@
 # lem-in — Product Requirements Document
 
+> **Historical design document.** This was the team's implementation plan.
+> The finished architecture, commands, verification results, and contribution
+> record are documented in `README.md`.
+
 **Project:** `lem-in` (digital ant farm / pathfinding)
 **Language:** Go (standard library only)
 **Team:** 4 people
@@ -395,7 +399,7 @@ Agree on the package layout (section 8.1), write `types.go` (section 8.2), and c
 ---
 
 ### Milestone 1 — Parsing and validation
-**Owner: Person A · branch `m1-parse`**
+**Owner: Stefanos Kamprogiannis (`skamprogiannis`) · branch `feat/parser`**
 
 Goal: turn the input file into a validated `*Graph`, and reject every malformed file cleanly.
 
@@ -469,7 +473,7 @@ Goal: turn the input file into a validated `*Graph`, and reject every malformed 
 ---
 
 ### Milestone 2 — Graph and pathfinding
-**Owner: Person B (strongest) · branch `m2-path` · this is the hardest milestone**
+**Owner: George Tzimokas (`gtzimoka`) · this is the hardest milestone**
 
 Goal: from a `*Graph`, produce the set of disjoint paths that minimizes turns for `g.NumAnts`. Read section 7 first.
 
@@ -522,7 +526,7 @@ Goal: from a `*Graph`, produce the set of disjoint paths that minimizes turns fo
 ---
 
 ### Milestone 3 — Simulation and output
-**Owner: Person C · branch `m3-sim`**
+**Owner: `ebimai` · branch `feat/m3-simulation`**
 
 Goal: from `[]Path` and `N`, produce the exact turn-by-turn output lines.
 
@@ -565,7 +569,7 @@ Goal: from `[]Path` and `N`, produce the exact turn-by-turn output lines.
 ---
 
 ### Milestone 4 — Integration, CLI, performance, and bonus
-**Owner: Person D · branch `m4-integrate`**
+**Owner: Stefanos Kamprogiannis (`skamprogiannis`) · integration/refinement branch**
 
 Goal: wire everything into a working binary, make it robust and fast, and (optionally) build the visualizer. This milestone also owns the **audit-gap items**.
 
@@ -619,31 +623,31 @@ Goal: wire everything into a working binary, make it robust and fast, and (optio
 
 ---
 
-## 11. Acceptance criteria (the audit, as a checklist)
+## 11. Acceptance criteria (verified)
 
 Self-check this before submitting. Each line is something the auditor verifies.
 
 **Functional**
-- [ ] Only standard packages are used.
-- [ ] `go run . example00.txt` reads the colony correctly.
-- [ ] Only `##start` and `##end` are accepted as commands (others ignored).
-- [ ] Output format is correct: file, blank line, one line per turn, moves as `Lx-y`.
-- [ ] example00 solves in ≤ 6 turns.
-- [ ] example01 solves in ≤ 8 turns.
-- [ ] example02 solves in ≤ 11 turns.
-- [ ] example03 solves in ≤ 6 turns.
-- [ ] example04 solves in ≤ 6 turns.
-- [ ] example05 solves in ≤ 8 turns.
-- [ ] badexample00 prints `ERROR: invalid data format`.
-- [ ] badexample01 prints `ERROR: invalid data format`.
-- [ ] example06 with 100 ants runs in < 1.5 minutes.
-- [ ] example07 with 1000 ants runs in < 2.5 minutes.
-- [ ] Ants are alone in each room (except start/end).
-- [ ] Each tunnel is used only once per turn.
-- [ ] All ants end in the end room.
-- [ ] Results are always correct across repeated runs (deterministic).
-- [ ] All error cases produce a message.
-- [ ] No empty work, no incomplete work, compiles, no cheating, no crashing, no leaks.
+- [x] Only standard packages are used.
+- [x] `go run . example00.txt` reads the colony correctly.
+- [x] Only `##start` and `##end` are accepted as commands (others ignored).
+- [x] Output format is correct: file, blank line, one line per turn, moves as `Lx-y`.
+- [x] example00 solves in ≤ 6 turns.
+- [x] example01 solves in ≤ 8 turns.
+- [x] example02 solves in ≤ 11 turns.
+- [x] example03 solves in ≤ 6 turns.
+- [x] example04 solves in ≤ 6 turns.
+- [x] example05 solves in ≤ 8 turns.
+- [x] badexample00 prints `ERROR: invalid data format`.
+- [x] badexample01 prints `ERROR: invalid data format`.
+- [x] example06 with 100 ants runs in < 1.5 minutes.
+- [x] example07 with 1000 ants runs in < 2.5 minutes.
+- [x] Ants are alone in each room (except start/end).
+- [x] Each tunnel is used only once per turn.
+- [x] All ants end in the end room.
+- [x] Results are always correct across repeated runs (deterministic).
+- [x] All error cases produce a message.
+- [x] No empty or incomplete work; builds without crashes or leaks.
 
 **Bonus (extra credit, not required)**
 - [ ] Visualizer that shows ants moving.
@@ -651,9 +655,9 @@ Self-check this before submitting. Each line is something the auditor verifies.
 - [ ] 3D visualizer.
 
 **Basic**
-- [ ] Runs quickly and efficiently (no unnecessary work).
-- [ ] Has test files covering each case.
-- [ ] Code follows good practices.
+- [x] Runs quickly and efficiently (no unnecessary work).
+- [x] Has test files covering each case.
+- [x] Code follows good practices.
 
 ---
 
