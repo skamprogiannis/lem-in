@@ -44,7 +44,24 @@ func TestRunRequiresExactlyOneInputFile(t *testing.T) {
 
 func TestCLIReportsInvalidInput(t *testing.T) {
 	binary := buildCLI(t)
-	missingFile := filepath.Join(t.TempDir(), "missing.txt")
+	fixtureDir := t.TempDir()
+	missingFile := filepath.Join(fixtureDir, "missing.txt")
+	emptyFile := filepath.Join(fixtureDir, "empty.txt")
+	disconnectedFile := filepath.Join(fixtureDir, "disconnected.txt")
+
+	if err := os.WriteFile(emptyFile, nil, 0o600); err != nil {
+		t.Fatalf("write empty fixture: %v", err)
+	}
+	disconnected := "2\n" +
+		"##start\n" +
+		"start 0 0\n" +
+		"middle 1 0\n" +
+		"##end\n" +
+		"end 2 0\n" +
+		"start-middle\n"
+	if err := os.WriteFile(disconnectedFile, []byte(disconnected), 0o600); err != nil {
+		t.Fatalf("write disconnected fixture: %v", err)
+	}
 
 	tests := []struct {
 		name       string
@@ -66,6 +83,16 @@ func TestCLIReportsInvalidInput(t *testing.T) {
 		{
 			name:       "missing file",
 			args:       []string{missingFile},
+			wantStderr: "ERROR: invalid data format,",
+		},
+		{
+			name:       "empty file",
+			args:       []string{emptyFile},
+			wantStderr: "ERROR: invalid data format,",
+		},
+		{
+			name:       "disconnected farm",
+			args:       []string{disconnectedFile},
 			wantStderr: "ERROR: invalid data format,",
 		},
 		{
