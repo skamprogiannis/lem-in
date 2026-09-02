@@ -63,6 +63,11 @@ func TestParseRejectsInvalidInput(t *testing.T) {
 			wantErr: "empty input file",
 		},
 		{
+			name:    "comments without an ant count",
+			input:   "# comment\n##unknown\n",
+			wantErr: "invalid ant value provided",
+		},
+		{
 			name:    "malformed ant count",
 			input:   "many\n",
 			wantErr: "invalid number in ant count entry",
